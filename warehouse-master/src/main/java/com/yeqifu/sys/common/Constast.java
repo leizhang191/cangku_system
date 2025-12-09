@@ -54,5 +54,10 @@ public class Constast {
     /**
      * 用户默认图片
      */
-    public static final String DEFAULT_IMG_USER="/images/defaultUserTitle.jpg";
+    // 统一使用静态目录下的 userface.jpg 作为默认头像
+    // 实际文件路径：src/main/resources/static/resources/images/userface.jpg
+    // 访问路径：
+    //   - 直接静态访问：/resources/images/userface.jpg
+    //   - 通过 FileController：/file/showImageByPath?path=/resources/images/userface.jpg
+    public static final String DEFAULT_IMG_USER="/resources/images/userface.jpg";
 }

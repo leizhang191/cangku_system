@@ -43,12 +43,6 @@
                 <input type="text" name="remark" id="remark" class="layui-input input-radius" placeholder="请输入部门备注">
             </div>
         </div>
-        <div class="layui-inline">
-            <label class="layui-form-label">部门地址</label>
-            <div class="layui-input-inline">
-                <input type="text" name="address" id="address" class="layui-input input-radius" placeholder="请输入部门地址">
-            </div>
-        </div>
     </div>
     <div class="layui-form-item">
         <div class="layui-input-block" style="text-align: center;padding-right: 15%;">
@@ -97,12 +91,6 @@
                     <input type="hidden" name="id">
                     <input type="text" name="name" lay-verify="required" autocomplete="off"
                            class="layui-input input-radius" placeholder="请输入部门名称">
-                </div>
-            </div>
-            <div class="layui-inline">
-                <label class="layui-form-label">部门地址</label>
-                <div class="layui-input-block">
-                    <input type="text" name="address" lay-verify="required" autocomplete="off" class="layui-input input-radius" placeholder="请输入部门地址">
                 </div>
             </div>
         </div>
@@ -180,7 +168,6 @@
                 {field: 'pid', title: '父级部门ID', align: 'center',width:'100'},
                 {field: 'name', title: '部门名称', align: 'center',width:'150'},
                 {field: 'remark', title: '部门备注', align: 'center',width:'150'},
-                {field: 'address', title: '部门地址', align: 'center',width:'100'},
                 {field: 'available', title: '是否可用', align: 'center',width:'100',templet:function (d) {
                     return d.available==1?'<font color="blue">可用</font>':'<font color="red">不可用</font>';
                 }},

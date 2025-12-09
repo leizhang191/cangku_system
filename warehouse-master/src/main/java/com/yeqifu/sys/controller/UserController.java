@@ -20,9 +20,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.io.File;
 
 /**
  * <p>
@@ -260,6 +259,26 @@ public class UserController {
     public ResultObj saveUserRole(Integer uid,Integer[] ids){
         try {
             userService.saveUserRole(uid,ids);
+
+            // 同步更新用户的 remark，使其反映当前绑定的角色名称（sys_role.name）
+            StringBuilder sb = new StringBuilder();
+            if (ids != null && ids.length > 0){
+                Collection<Role> roles = roleService.listByIds(Arrays.asList(ids));
+                for (Role role : roles) {
+                    if (role != null && StringUtils.isNotBlank(role.getName())){
+                        if (sb.length() > 0){
+                            sb.append(",");
+                        }
+                        sb.append(role.getName());
+                    }
+                }
+            }
+            User user = userService.getById(uid);
+            if (user != null){
+                user.setRemark(sb.toString());
+                userService.updateById(user);
+            }
+
             return ResultObj.DISPATCH_SUCCESS;
         } catch (Exception e) {
             e.printStackTrace();
@@ -308,8 +327,10 @@ public class UserController {
     public User getNowUser(){
         //1.获取当前session中的user
         User user = (User) WebUtils.getSession().getAttribute("user");
-        System.out.println("*****************************************");
-        System.out.println(user);
+        // 头像统一使用项目本地的默认图片，不再依赖上传目录或数据库中的旧路径
+        if (user != null){
+            user.setImgpath(Constast.DEFAULT_IMG_USER);
+        }
         return user;
     }
 
@@ -322,22 +343,36 @@ public class UserController {
     @RequestMapping("updateUserInfo")
     public ResultObj updateUserInfo(UserVo userVo){
         try {
-            //用户头像不是默认图片
-            if (!(userVo.getImgpath()!=null&&userVo.getImgpath().equals(Constast.DEFAULT_IMG_GOODS))){
-                if (userVo.getImgpath().endsWith("_temp")){
-                    String newName = AppFileUtils.renameFile(userVo.getImgpath());
-                    userVo.setImgpath(newName);
-                    //删除原先的图片
-                    String oldPath = userService.getById(userVo.getId()).getImgpath();
-                    AppFileUtils.removeFileByPath(oldPath);
-                    //获取存储在session中的user并重新设置user中的图片地址
-                    User user = (User) WebUtils.getSession().getAttribute("user");
-                    user.setImgpath(newName);
-                    //重新设置user
-                    WebUtils.getSession().setAttribute("user",user);
-                }
+            // 先查询数据库中的原始用户，保证不可编辑字段（如 remark 等）不会被前端覆盖
+            User dbUser = userService.getById(userVo.getId());
+            if (dbUser == null){
+                return ResultObj.UPDATE_ERROR;
             }
+
+            // 不再支持前端修改头像，统一把头像设置为本地默认图片路径
+            userVo.setImgpath(Constast.DEFAULT_IMG_USER);
+            // 保持 remark 等敏感字段沿用数据库值，防止被前端置空或篡改
+            userVo.setRemark(dbUser.getRemark());
+            userVo.setLoginname(dbUser.getLoginname());
+            userVo.setType(dbUser.getType());
+            userVo.setAvailable(dbUser.getAvailable());
+            userVo.setDeptid(dbUser.getDeptid());
+            userVo.setMgr(dbUser.getMgr());
+            userVo.setOrdernum(dbUser.getOrdernum());
+
             userService.updateById(userVo);
+
+            // 更新 session 中的用户信息，保证刷新页面能看到最新资料
+            User sessionUser = (User) WebUtils.getSession().getAttribute("user");
+            if (sessionUser != null){
+                sessionUser.setName(userVo.getName());
+                sessionUser.setAddress(userVo.getAddress());
+                sessionUser.setSex(userVo.getSex());
+                // 头像始终指向默认图片
+                sessionUser.setImgpath(Constast.DEFAULT_IMG_USER);
+                WebUtils.getSession().setAttribute("user", sessionUser);
+            }
+
             return ResultObj.UPDATE_SUCCESS;
         } catch (Exception e) {
             e.printStackTrace();

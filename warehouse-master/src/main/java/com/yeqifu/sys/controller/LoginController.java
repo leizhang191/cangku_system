@@ -57,8 +57,10 @@ public class LoginController {
                 subject.login(token);
                 //通过subject获取以认证活动的user
                 ActiverUser activerUser = (ActiverUser) subject.getPrincipal();
-                //将user存储到session中
-                WebUtils.getSession().setAttribute("user",activerUser.getUser());
+                //将user存储到session中，头像统一指向项目本地默认图片
+                User loginUser = activerUser.getUser();
+                loginUser.setImgpath(Constast.DEFAULT_IMG_USER);
+                WebUtils.getSession().setAttribute("user",loginUser);
                 //记录登陆日志
                 Loginfo entity = new Loginfo();
                 entity.setLoginname(activerUser.getUser().getName()+"-"+activerUser.getUser().getLoginname());

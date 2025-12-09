@@ -126,22 +126,6 @@
         </div>
         <div class="layui-form-item">
             <div class="layui-inline">
-                <label class="layui-form-label">领导部门</label>
-                <div class="layui-input-block">
-                    <ul id="leaderdeptTree" class="dtree" data-id="0"></ul>
-                </div>
-            </div>
-            <div class="layui-inline">
-                <label class="layui-form-label">直属领导</label>
-                <div class="layui-input-block">
-                    <select name="mgr" id="mgr">
-                        <option value="">请选择直属领导</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-        <div class="layui-form-item">
-            <div class="layui-inline">
                 <label class="layui-form-label">用户名称</label>
                 <div class="layui-input-block">
                     <input type="hidden" name="id">
@@ -251,26 +235,25 @@
             cols: [ [
                 {field: 'id', title: 'ID', align: 'center', width: '50'},
                 {field: 'name', title: '用户名', align: 'center', width: '130'},
-                {field: 'loginname', title: '登陆名称', align: 'center', width: '130'},
+                // {field: 'loginname', title: '登陆名称', align: 'center', width: '130'},
                 {field: 'deptname', title: '所属部门', align: 'center', width: '130'},
-                {field: 'leadername', title: '直属领导', align: 'center', width: '120'},
-                {field: 'remark', title: '用户备注', align: 'center', width: '120'},
+                {field: 'remark', title: '用户角色', align: 'center', width: '120'},
                 {field: 'address', title: '用户地址', align: 'center', width: '100'},
                 {field: 'hiredate', title: '入职时间', align: 'center', width: '160'},
-                {field: 'imgpath', title: '用户头像', align: 'center', width: '160', templet:function(d){
-                        return '<img width=40 height=40 src=/file/showImageByPath?path='+d.imgpath+ ' />';
-                }},
+                // {field: 'imgpath', title: '用户头像', align: 'center', width: '160', templet:function(d){
+                //         return '<img width=40 height=40 src=/file/showImageByPath?path='+d.imgpath+ ' />';
+                // }},
                 {
-                    field: 'sex', title: '是否可用', align: 'center', width: '100', templet: function (d) {
+                    field: 'sex', title: '性别', align: 'center', width: '100', templet: function (d) {
                     return d.sex == 1 ? '<font color="blue">男</font>' : '<font color="red">女</font>';
                 }
                 },
-                {
-                    field: 'available', title: '是否可用', align: 'center', width: '100', templet: function (d) {
-                    return d.available == 1 ? '<font color="blue">可用</font>' : '<font color="red">不可用</font>';
-                }
-                },
-                {field: 'ordernum', title: '排序码', align: 'center', width: '80'},
+                // {
+                //     field: 'available', title: '是否可用', align: 'center', width: '100', templet: function (d) {
+                //     return d.available == 1 ? '<font color="blue">可用</font>' : '<font color="red">不可用</font>';
+                // }
+                // },
+                // {field: 'ordernum', title: '排序码', align: 'center', width: '80'},
                 {fixed: 'right', title: '操作', toolbar: '#userRowBar', align: 'center', width: '330'}
             ] ],
             done: function (data, curr, count) {
@@ -346,10 +329,6 @@
                     $.get("/user/loadUserMaxOrderNum", function (res) {
                         $("#ordernum").val(res.value);
                     });
-                    //重新渲染直属领导的下拉列表
-                    var html = "<option value='0'>请选择直属领导</option>";
-                    $("#mgr").html(html);
-                    form.render("select");
                 }
             });
         }
@@ -370,30 +349,6 @@
                     //选中之前的所属部门  nodeId=data.deptid
                     dtree.dataInit("deptTree", data.deptid);
                     dtree.selectVal("deptTree");
-
-                    //选中领导部门，首先拿到领导的id,如何再去数据库中查询出领导的信息，取出领导的部门
-                    var leaderid = data.mgr;
-                    $.get("/user/loadUserById",{id:leaderid},function (res) {
-                        var d = res.data;
-                        //查询领导的部门ID，如何重新加载领导部门的下拉列表
-                        dtree.dataInit("leaderdeptTree",d.deptid);
-                        dtree.selectVal("leaderdeptTree");
-                        //根据部门ID查询当前部门下面的领导列表
-                        $.get("/user/loadUsersByDeptId",{deptid:d.deptid},function (res) {
-                            var users = res.data;
-                            var dom_mgr=$("#mgr");
-                            var html = "<option value=''>请选择直属领导</option>";
-                            $.each(users,function (index, item) {
-                                html+="<option value='"+item.id+"'>"+item.name+"</option>";
-                            });
-                            dom_mgr.html(html);
-                            //选中一个
-                            dom_mgr.val(leaderid);
-
-                            //重新渲染
-                            form.render("select");
-                        })
-                    });
                     url = "/user/updateUser";
                 }
             });
