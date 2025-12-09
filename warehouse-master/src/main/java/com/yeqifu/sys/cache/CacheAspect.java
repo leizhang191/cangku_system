@@ -124,7 +124,8 @@ public class CacheAspect {
      * 声明用户的切面表达式
      */
     private static final String POINTCUT_USER_UPDATE="execution(* com.yeqifu.sys.service.impl.UserServiceImpl.updateById(..))";
-    private static final String POINTCUT_USER_ADD="execution(* com.yeqifu.sys.service.impl.UserServiceImpl.updateById(..))";
+    // 新增用户时使用 save 而不是 updateById
+    private static final String POINTCUT_USER_ADD="execution(* com.yeqifu.sys.service.impl.UserServiceImpl.save(..))";
     private static final String POINTCUT_USER_GET="execution(* com.yeqifu.sys.service.impl.UserServiceImpl.getById(..))";
     private static final String POINTCUT_USER_DELETE="execution(* com.yeqifu.sys.service.impl.UserServiceImpl.removeById(..))";
 
@@ -163,7 +164,10 @@ public class CacheAspect {
         }else {
             log.info("未从缓存里面找到用户对象，从数据库中查询并放入缓存");
             User res2 =(User) joinPoint.proceed();
-            CACHE_CONTAINER.put(CACHE_USER_PROFIX+res2.getId(),res2);
+            // 可能根据ID在数据库中查不到用户，此时直接返回null，避免空指针
+            if (res2 != null){
+                CACHE_CONTAINER.put(CACHE_USER_PROFIX+res2.getId(),res2);
+            }
             return res2;
         }
     }
